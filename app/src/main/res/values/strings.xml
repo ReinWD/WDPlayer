@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WDPlayer</string>
+    <string name="notifier">notifier</string>
 </resources>
