@@ -4,9 +4,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.zw.wdplayer.VideoPlayer;
-import com.zw.wdplayer.pojo.VideoItem;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -28,7 +26,6 @@ public class VideoControler {
 
     public void addVideoPlayer(final VideoPlayer videoPlayer, final int index) {
         playerList.set(index,videoPlayer);
-        Log.d(TAG, "addVideoPlayer: prepareing "+(index));
     }
 
     public void stop(int position){
@@ -43,21 +40,52 @@ public class VideoControler {
         }
     }
 
+    public void setProgressUpdater(int position, final ProgressUpdater updater){
+        final VideoPlayer target = playerList.get(position);
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    while (target.isPlaying()){
+                        updater.updateProgress(target.getProgress());
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+    }
+
     private void init() {
         playerList = new ArrayList<>();
     }
 
-    public void prepareMediaPlayer(final int position) {
+    public void prepareMediaPlayer(final SurfaceHolder holder, final int position, final PreparedCallback callback) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                playerList.get(position).prepareMediaPlayer();
+                Log.d(TAG, "addVideoPlayer: prepareing "+(position));
+                playerList.get(position).prepareMediaPlayer(holder,callback);
             }
         });
     }
 
     public void setDisplay(final SurfaceHolder holder, final int position) {
-        playerList.get(position).setDisplay(holder);
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                playerList.get(position).setDisplay(holder);
+            }
+        });
     }
 
     public void pause(final int position) {
@@ -67,5 +95,9 @@ public class VideoControler {
                 playerList.get(position).pause();
             }
         });
+    }
+
+    public void seekTo(int position, int progress) {
+        playerList.get(position).seekTo(progress);
     }
 }

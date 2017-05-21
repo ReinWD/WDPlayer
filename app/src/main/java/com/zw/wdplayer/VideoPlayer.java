@@ -4,6 +4,8 @@ import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.zw.wdplayer.controler.PreparedCallback;
+
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -16,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class VideoPlayer {
     private static final String TAG = "VideoPlayer";
     private MediaPlayer mediaPlayer;
-    private int position = 0;
+    private double position = 0;
+    private double totalLength;
 
     private boolean isPaused;
     private boolean isPrePared;
@@ -35,18 +38,18 @@ public class VideoPlayer {
     }
 
     public void play() {
-        if (isPaused) {
-            mediaPlayer.start();
-            isPaused = false;
-        } else {
-            mediaPlayer.start();
+        if (isPlaying()) {
+            pause();
+            return;
         }
+        mediaPlayer.start();
+        isPaused = false;
     }
 
     public void stop() {
     }
 
-    public void prepareMediaPlayer() {
+    public void prepareMediaPlayer(SurfaceHolder holder,PreparedCallback callback) {
         if (!isPrePared) {
             try {
                 mediaPlayer = new MediaPlayer();
@@ -58,8 +61,16 @@ public class VideoPlayer {
                         isPrePared = true;
                     }
                 });
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        mp.seekTo(1);
+                    }
+                });
                 mediaPlayer.setDataSource(url);
                 mediaPlayer.prepare();
+                totalLength = mediaPlayer.getDuration();
+                callback.onPrepared();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (IllegalStateException e2) {
@@ -92,7 +103,32 @@ public class VideoPlayer {
         mediaPlayer.reset();
     }
 
+    public double getProgress(){
+        position = mediaPlayer.getCurrentPosition();
+        return position/totalLength;
+    }
+
     public void setDisplay(SurfaceHolder holder) {
         mediaPlayer.setDisplay(holder);
+    }
+
+    private void calcSize(){}
+
+
+    public void seekTo(int progress) {
+        double target = (((double) progress)/100)*totalLength;
+        mediaPlayer.seekTo(((int) target));
+        mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+            @Override
+            public void onSeekComplete(MediaPlayer mp) {
+                mp.start();
+                mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                    @Override
+                    public void onSeekComplete(MediaPlayer mp) {
+
+                    }
+                });
+            }
+        });
     }
 }

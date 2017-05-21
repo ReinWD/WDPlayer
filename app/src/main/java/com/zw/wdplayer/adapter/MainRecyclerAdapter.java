@@ -3,23 +3,28 @@ package com.zw.wdplayer.adapter;
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.zw.wdplayer.R;
 import com.zw.wdplayer.VideoPlayer;
+import com.zw.wdplayer.controler.PreparedCallback;
+import com.zw.wdplayer.controler.ProgressUpdater;
 import com.zw.wdplayer.controler.VideoControler;
 import com.zw.wdplayer.pojo.VideoItem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import static android.view.View.VISIBLE;
 
 /**
  * Created by reinwd on 5/20/17.
@@ -40,15 +45,14 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         init();
     }
 
-    public void setData(VideoItem image, int index, int pages){
+    public void setData(VideoItem image, int index, int pages) {
         int position = 20 * (pages - 1) + index;
         mDatas.set(position, image);
         try {
-            mVideoControler.addVideoPlayer(new VideoPlayer(image.getVideoUri()),position);
+            mVideoControler.addVideoPlayer(new VideoPlayer(image.getVideoUri()), position);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mVideoControler.prepareMediaPlayer(position);
         notifyItemChanged(position);
     }
 
@@ -60,7 +64,7 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
 
     private void addPage() {
         for (int i = 0; i < 20; i++) {
-            mDatas.add(new VideoItem());
+            mDatas.add(null);
         }
         mVideoControler.addPage();
     }
@@ -75,23 +79,19 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
     @Override
     public void onBindViewHolder(final MainViewHolder holder, final int position) {
         final VideoItem item = mDatas.get(position);
-        if (item.getProfileImage() != null) {
+        if (item != null) {
             holder.textContent.setText(item.getText());
             holder.textTitle.setText(item.getName());
             holder.textStarred.setText(item.getLove());
             holder.textUnstarred.setText(item.getHate());
             holder.imageIcon.setImageBitmap(item.getProfileImage());
-            holder.cardItem.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
 
-                }
-            });
-            final SurfaceHolder surfaceHolder = holder.video.getHolder();
+            SurfaceHolder surfaceHolder = holder.video.getHolder();
             surfaceHolder.addCallback(new SurfaceHolder.Callback() {
                 @Override
-                public void surfaceCreated(SurfaceHolder holder) {
-                    mVideoControler.setDisplay(holder,position);
+                public void surfaceCreated(final SurfaceHolder holdeer) {
+                    mVideoControler.setDisplay(holdeer, position);
+                    holder.setVideoVisiable(VISIBLE);
                 }
 
                 @Override
@@ -104,6 +104,37 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
                     mVideoControler.pause(position);
                 }
             });
+            mVideoControler.prepareMediaPlayer(surfaceHolder,position, new PreparedCallback() {
+                @Override
+                public void onPrepared() {
+                    holder.setVideoVisiable(VISIBLE);
+                    mVideoControler.setProgressUpdater(position, new ProgressUpdater() {
+                        @Override
+                        public void updateProgress(double progress) {
+                            holder.progressFore.setProgress(((int)(progress * holder.progressMax)));
+
+                        }
+                    });
+                }
+            });
+            holder.progressFore.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        mVideoControler.seekTo(position, progress);
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });;
             holder.video.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -145,12 +176,14 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         ImageView imageIcon;
         ImageView imageStarred;
         ImageView imageUnstarred;
+        ProgressBar progressBack;
+        SeekBar progressFore;
         SurfaceView video;
         CardView cardItem;
+        int progressMax;
 
         MainViewHolder(View itemView) {
             super(itemView);
-
             init();
         }
 
@@ -163,8 +196,32 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
             imageIcon = (ImageView) itemView.findViewById(R.id.image_item_icon);
             imageStarred = (ImageView) itemView.findViewById(R.id.image_item_starred);
             imageUnstarred = (ImageView) itemView.findViewById(R.id.image_item_unstarred);
+            progressBack = (ProgressBar) itemView.findViewById(R.id.progress_item_back);
+            progressFore = (SeekBar) itemView.findViewById(R.id.seek_item_fore);
+            progressFore.setMax(100);
+            progressMax = 100;
             video = (SurfaceView) itemView.findViewById(R.id.surface_item);
             cardItem = (CardView) itemView.findViewById(R.id.card_item);
+        }
+
+        public void setVideoVisiable(final int videoVisiable) {
+            mUiInterface.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    switch (videoVisiable) {
+                        case View.VISIBLE:
+                            video.setVisibility(View.VISIBLE);
+                            progressBack.setVisibility(View.INVISIBLE);
+                            progressFore.setVisibility(View.VISIBLE);
+                            break;
+                        default:
+                            video.setVisibility(View.INVISIBLE);
+                            progressBack.setVisibility(View.VISIBLE);
+                            progressFore.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
         }
     }
 
