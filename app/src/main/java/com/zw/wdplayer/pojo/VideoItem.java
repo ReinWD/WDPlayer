@@ -14,7 +14,7 @@ public class VideoItem {
 
         private String love;
         private String createTime;
-        private InputStream videoUri;
+        private String  videoUri;
         private Bitmap profileImage;
         private String name;
         private String hate;
@@ -23,7 +23,7 @@ public class VideoItem {
 
         public String getLove(){return this.love;}
         public Bitmap getProfileImage(){return this.profileImage;}
-        public InputStream getVideoUri(){return this.videoUri;}
+        public String  getVideoUri(){return this.videoUri;}
         public String getCreateTime(){return this.createTime;}
         public String getName(){return this.name;}
         public String getHate(){return this.hate;}
@@ -32,7 +32,7 @@ public class VideoItem {
 
         public void setLove(String love){this.love=love;}
         public void setProfileImage(Bitmap profileImage){this.profileImage=profileImage;}
-        public void setVideoUri(InputStream videoUri){this.videoUri=videoUri;}
+        public void setVideoUri(String  videoUri){this.videoUri=videoUri;}
         public void setCreateTime(String createTime){this.createTime=createTime;}
         public void setName(String name){this.name=name;}
         public void setHate(String hate){this.hate=hate;}

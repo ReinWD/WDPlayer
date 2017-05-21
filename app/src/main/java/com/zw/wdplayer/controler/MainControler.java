@@ -28,7 +28,7 @@ public class MainControler {
 
     private MainConnector mMainConnector;
     private int mPage;
-    private ArrayList<VideoItem> mVideoItems = new ArrayList<>();
+    private ArrayList<VideoItem> mVideoItems;
 
     public MainControler(MainActivity mainActivity, MainConnector connector) {
         this.mMainConnector = connector;
@@ -46,13 +46,14 @@ public class MainControler {
                 .addParams("showapi_sign", "45f60f0c98ee4622a2618830af25ba5e")
                 .addParams("showapi_appid", "38537")
                 .addParams("type", "41")
-                .addParams("Page", String.valueOf(page))
+                .addParams("page", String.valueOf(page))
                 .build();
         Http.sendRequest(request, new OnPageRequestFinishListenner(page));
     }
 
     private void handleItem(ArrayList pagebeanList) {
         int i = 0;
+        mVideoItems = new ArrayList<>();
         VideoList.ShowapiResBody.Pagebean.Contentlist contentList;
         for (Object content :
                 pagebeanList) {
@@ -61,8 +62,9 @@ public class MainControler {
             videoItem.setCreateTime(contentList.getCreateTime());
             videoItem.setHate(contentList.getHate());
             videoItem.setLove(contentList.getLove());
-            videoItem.setText(contentList.getText().replace("\\n", "\n"));
+            videoItem.setText(contentList.getText().replace("\\n", ""));
             videoItem.setName(contentList.getName());
+            videoItem.setVideoUri(contentList.getVideoUri());
             mVideoItems.add(videoItem);
             requestData(contentList.getProfileImage(), new OnProfileImageFinishListener(i));
             i++;
@@ -84,12 +86,12 @@ public class MainControler {
 
         @Override
         public void onSuccess(InputStream inputStream) {
-            Log.d(TAG, "onSuccess: request finished");
             VideoList mVideoList;
             JsonReader jsonReader = new JsonReader();
             ArrayList pagebeanList;
             try {
-                mVideoList = jsonReader.readJson(decodeStream(inputStream), VideoList.class);
+                String json = decodeStream(inputStream);
+                mVideoList = jsonReader.readJson(json, VideoList.class);
                 Log.d(TAG, "onSuccess: read json finished");
                 pagebeanList = ((ArrayList) mVideoList.getShowapiResBody().getPagebean().getContentlist());
                 handleItem(pagebeanList);
@@ -109,23 +111,6 @@ public class MainControler {
         @Override
         public void onFailure(Exception e) {
             Log.e(TAG, "onFailure: ", e);
-        }
-    }
-
-    private class OnVideoRequestFinishListener extends IndexedCallback {
-
-        public OnVideoRequestFinishListener(int index) {
-            super(index, mPage);
-        }
-
-        @Override
-        public void onSuccess(InputStream inputStream) {
-            mVideoItems.get(index).setVideoUri(inputStream);
-        }
-
-        @Override
-        public void onFailure(Exception e) {
-
         }
     }
 

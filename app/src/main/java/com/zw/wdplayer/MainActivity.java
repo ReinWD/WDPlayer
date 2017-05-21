@@ -6,7 +6,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
-import com.zw.wdplayer.adapter.DataUpdater;
 import com.zw.wdplayer.adapter.MainRecyclerAdapter;
 import com.zw.wdplayer.adapter.MainRecyclerAdapter.UiInterface;
 import com.zw.wdplayer.controler.MainConnector;
@@ -20,8 +19,6 @@ public class MainActivity extends Activity implements UiInterface {
     private MainControler mainControler;
     private RecyclerView mMainRecyclerView;
     private MainRecyclerAdapter mRecyclerAdapter;
-    private DataUpdater dataUpdater;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,12 +27,12 @@ public class MainActivity extends Activity implements UiInterface {
 
         init();
         mainControler.switchPage(1);
-
     }
 
     @Override
     public void requestNextPage(int targetPage) {
         mainControler.switchPage(targetPage);
+
     }
 
     private class MainListener implements MainConnector{
@@ -46,7 +43,6 @@ public class MainActivity extends Activity implements UiInterface {
                 @Override
                 public void run() {
                     mRecyclerAdapter.setData(image,index,pages);
-                    Log.d(TAG, "onItemReady: data ready at"+index+",page "+pages);
                 }
             });
         }

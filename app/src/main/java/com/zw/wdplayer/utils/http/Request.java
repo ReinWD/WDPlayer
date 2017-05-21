@@ -26,7 +26,7 @@ public class Request {
     private int connectionTimeOut;
 
 
-    private Request(String url, String method, String[] paramKeys, //TODO add @Method to 2nd param
+    private Request(String url, String method, String[] paramKeys,
                     String[] paramValues, int readTimeOut, int connectionTimeOut) {
         this.url = url;
         this.method = method;
@@ -48,7 +48,7 @@ public class Request {
         return method;
     }
 
-    public void setMethod(String method) { //TODO add @Method to param
+    public void setMethod(String method) {
         this.method = method;
     }
 
