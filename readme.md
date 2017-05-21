@@ -1,8 +1,12 @@
 WDPlayer
 2016半期考核
 
+APK:
+https://github.com/ReinWD/WDPlayer/blob/master/WDPlayer.apk
+
 功能实现:
-	1.加载列表
+	
+1.加载列表
 
 		列表内容: 编号,上传者头像与ID,
 				该作品获得的赞与踩,视频,文字说明
@@ -10,7 +14,7 @@ WDPlayer
 		已知Bug:由于使用了ConstraintLayout,偶尔会出现UI错位现象
 				*原因未知
 
-	2.播放视频
+2.播放视频
 
 		已实现功能:
 
@@ -24,10 +28,10 @@ WDPlayer
 				,则点击后可以播放
 				(这玩意出的各种Exception 真的非常虐心...)
 
-	3.自动换页
+3.自动换页
 
 		滑动到列表接近底部位置时自动请求下一页
 
-	4.启动页面
+4.启动页面
 
 By. ReinWD, 张巍.
